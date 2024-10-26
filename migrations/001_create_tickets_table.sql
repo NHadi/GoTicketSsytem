@@ -1,0 +1,8 @@
+CREATE TABLE tickets (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    ticket_title NVARCHAR(100) NOT NULL,
+    ticket_msg NVARCHAR(MAX) NOT NULL,
+    user_id INT NOT NULL,
+    status NVARCHAR(3) NOT NULL,
+    created_at DATETIMEOFFSET DEFAULT SYSDATETIMEOFFSET() NOT NULL
+);

@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "Ticketing System API",
+    "_postman_id": "1234abcd-5678-efgh-ijkl-9876mnopqrst",
+    "description": "Postman collection for testing Ticketing System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Ticket - Validation Error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"title\": \"Short\", \"message\": \"Too short message\", \"user_id\": 1 }"
+        },
+        "url": {
+          "raw": "http://localhost:8080/tickets",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tickets"]
+        }
+      }
+    },
+    {
+      "name": "Create Ticket - Success",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"title\": \"Sample Ticket\", \"message\": \"This is a sample ticket message that is more than 100 characters long to pass validation requirements.\", \"user_id\": 1 }"
+        },
+        "url": {
+          "raw": "http://localhost:8080/tickets",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tickets"]
+        }
+      }
+    },
+    {
+      "name": "Get Ticket List - Filter by Date Before",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"filter\": { \"filter_name\": \"created_at\", \"filter_type\": \"before\", \"filter_value\": \"2024-10-26T13:50:00Z\" }, \"page_size\": 10 }"
+        },
+        "url": {
+          "raw": "http://localhost:8080/tickets/list",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tickets", "list"]
+        }
+      }
+    },
+    {
+      "name": "Get Ticket List - Sort by Date Ascending",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"sort\": { \"sort_name\": \"created_at\", \"sort_dir\": \"asc\" }, \"page_size\": 10 }"
+        },
+        "url": {
+          "raw": "http://localhost:8080/tickets/list",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tickets", "list"]
+        }
+      }
+    },
+    {
+      "name": "Get Ticket List - Page Size 20",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"page_size\": 20 }"
+        },
+        "url": {
+          "raw": "http://localhost:8080/tickets/list",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["tickets", "list"]
+        }
+      }
+    }
+  ]
+}

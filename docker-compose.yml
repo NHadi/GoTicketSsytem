@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  sqlserver:
+      build:
+        context: .
+        dockerfile: Dockerfile.sqlserver
+      environment:
+        SA_PASSWORD: "YourStrong!Passw0rd"
+        ACCEPT_EULA: "Y"
+      ports:
+        - "1433:1433"
+      networks:
+        - backend
+      volumes:
+        - sqlserver_data:/var/opt/mssql
+      healthcheck:
+        test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourStrong!Passw0rd", "-Q", "SELECT 1"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    networks:
+      - backend
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ticketing-service:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      environment:
+        SQLSERVER_URL: "sqlserver://sa:YourStrong!Passw0rd@sqlserver:1433?database=tickets_db&encrypt=disable"
+        ELASTICSEARCH_URL: "http://elasticsearch:9200"
+        RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      ports:
+        - "8080:8080"
+      depends_on:
+        sqlserver:
+          condition: service_healthy
+        elasticsearch:
+          condition: service_healthy
+        rabbitmq:
+          condition: service_healthy
+      networks:
+        - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+  es_data:
+  rabbitmq_data:

@@ -1,0 +1,343 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server for a ticketing system.",
+        "title": "Ticketing System API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/tickets": {
+            "post": {
+                "description": "Create a new ticket in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Create a new ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket Data",
+                        "name": "ticket",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateTicketRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Ticket"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/list": {
+            "post": {
+                "description": "Retrieves a list of tickets with optional filtering, sorting, and pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Get list of tickets",
+                "parameters": [
+                    {
+                        "description": "Request payload for getting ticket list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetTicketListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response with ticket list",
+                        "schema": {
+                            "$ref": "#/definitions/responses.GetTicketListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve tickets",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/{id}/status": {
+            "patch": {
+                "description": "Update the status of an existing ticket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Update ticket status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New Status",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.UpdateTicketStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.TicketStatusUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid status",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update ticket status",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.CreateTicketRequest": {
+            "type": "object",
+            "required": [
+                "message",
+                "title",
+                "user_id"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "minLength": 100
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 10
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.TicketStatusUpdateResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "newStatus": {
+                    "type": "string"
+                },
+                "ticketID": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.UpdateTicketStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "description": "Limit to valid statuses",
+                    "type": "string",
+                    "enum": [
+                        "opn",
+                        "cld",
+                        "asn"
+                    ]
+                }
+            }
+        },
+        "dto.FilterOptions": {
+            "type": "object",
+            "properties": {
+                "filter_name": {
+                    "type": "string"
+                },
+                "filter_type": {
+                    "description": "\"before\", \"after\", \"between\"",
+                    "type": "string"
+                },
+                "filter_value": {
+                    "description": "single date string for \"before\" and \"after\", or a date range for \"between\"",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetTicketListRequest": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/dto.FilterOptions"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "$ref": "#/definitions/dto.SortOptions"
+                }
+            }
+        },
+        "dto.SortOptions": {
+            "type": "object",
+            "properties": {
+                "sort_dir": {
+                    "description": "\"asc\" or \"desc\"",
+                    "type": "string"
+                },
+                "sort_name": {
+                    "description": "\"created_at\" or \"user_id\"",
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Ticket": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/entities.TicketStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entities.TicketStatus": {
+            "type": "string",
+            "enum": [
+                "opn",
+                "cld",
+                "asn"
+            ],
+            "x-enum-varnames": [
+                "Open",
+                "Closed",
+                "Assigned"
+            ]
+        },
+        "responses.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "responses.GetTicketListResponse": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "tickets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.TicketResponse"
+                    }
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responses.TicketResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "ticket_name": {
+                    "type": "string"
+                },
+                "ticket_status": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

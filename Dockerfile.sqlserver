@@ -1,0 +1,29 @@
+FROM mcr.microsoft.com/mssql/server:2019-latest
+
+# Set environment variables for SQL Server
+ENV ACCEPT_EULA=Y
+ENV SA_PASSWORD=YourStrong!Passw0rd
+
+# Switch to root to install required tools
+USER root
+
+# Install mssql-tools and dependencies
+RUN apt-get update && \
+    apt-get install -y curl apt-transport-https gnupg && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Add mssql-tools to PATH for easier access to sqlcmd
+ENV PATH="$PATH:/opt/mssql-tools/bin"
+
+# Copy the initialization script
+COPY init.sql /init.sql
+
+# Switch back to mssql user
+USER mssql
+
+# Run SQL Server and initialization script
+CMD /bin/bash -c "/opt/mssql/bin/sqlservr & sleep 20 && /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $SA_PASSWORD -i /init.sql && wait"

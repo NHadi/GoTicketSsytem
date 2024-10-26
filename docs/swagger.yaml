@@ -1,0 +1,231 @@
+basePath: /
+definitions:
+  api.CreateTicketRequest:
+    properties:
+      message:
+        minLength: 100
+        type: string
+      title:
+        maxLength: 100
+        minLength: 10
+        type: string
+      user_id:
+        type: integer
+    required:
+    - message
+    - title
+    - user_id
+    type: object
+  api.TicketStatusUpdateResponse:
+    properties:
+      message:
+        type: string
+      newStatus:
+        type: string
+      ticketID:
+        type: string
+    type: object
+  api.UpdateTicketStatusRequest:
+    properties:
+      status:
+        description: Limit to valid statuses
+        enum:
+        - opn
+        - cld
+        - asn
+        type: string
+    required:
+    - status
+    type: object
+  dto.FilterOptions:
+    properties:
+      filter_name:
+        type: string
+      filter_type:
+        description: '"before", "after", "between"'
+        type: string
+      filter_value:
+        description: single date string for "before" and "after", or a date range
+          for "between"
+        type: string
+    type: object
+  dto.GetTicketListRequest:
+    properties:
+      filter:
+        $ref: '#/definitions/dto.FilterOptions'
+      page:
+        type: integer
+      page_size:
+        type: integer
+      sort:
+        $ref: '#/definitions/dto.SortOptions'
+    type: object
+  dto.SortOptions:
+    properties:
+      sort_dir:
+        description: '"asc" or "desc"'
+        type: string
+      sort_name:
+        description: '"created_at" or "user_id"'
+        type: string
+    type: object
+  entities.Ticket:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      status:
+        $ref: '#/definitions/entities.TicketStatus'
+      title:
+        type: string
+      userID:
+        type: integer
+    type: object
+  entities.TicketStatus:
+    enum:
+    - opn
+    - cld
+    - asn
+    type: string
+    x-enum-varnames:
+    - Open
+    - Closed
+    - Assigned
+  responses.ErrorResponse:
+    properties:
+      details:
+        type: string
+      error:
+        type: string
+    type: object
+  responses.GetTicketListResponse:
+    properties:
+      current_page:
+        type: integer
+      page_size:
+        type: integer
+      tickets:
+        items:
+          $ref: '#/definitions/responses.TicketResponse'
+        type: array
+      total_count:
+        type: integer
+    type: object
+  responses.TicketResponse:
+    properties:
+      created_at:
+        type: string
+      ticket_name:
+        type: string
+      ticket_status:
+        type: string
+      user_id:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for a ticketing system.
+  title: Ticketing System API
+  version: "1.0"
+paths:
+  /tickets:
+    post:
+      consumes:
+      - application/json
+      description: Create a new ticket in the system
+      parameters:
+      - description: Ticket Data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entities.Ticket'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Create a new ticket
+      tags:
+      - Tickets
+  /tickets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of an existing ticket
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New Status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateTicketStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.TicketStatusUpdateResponse'
+        "400":
+          description: Invalid status
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Failed to update ticket status
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Update ticket status
+      tags:
+      - Tickets
+  /tickets/list:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves a list of tickets with optional filtering, sorting, and
+        pagination
+      parameters:
+      - description: Request payload for getting ticket list
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GetTicketListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response with ticket list
+          schema:
+            $ref: '#/definitions/responses.GetTicketListResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Failed to retrieve tickets
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Get list of tickets
+      tags:
+      - Tickets
+swagger: "2.0"
